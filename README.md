@@ -372,7 +372,7 @@ You can find me on [![Twitter][1.2]][1], or on [![LinkedIn][3.2]][3].
 <!-- Icons -->
 
 [1.2]: http://i.imgur.com/wWzX9uB.png (twitter icon without padding)
-[3.2]: https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg (LinkedIn icon without padding)
+[3.2]: https://content.linkedin.com/content/dam/me/brand/en-us/brand-home/logos/01-dsk-e5-v2.png.original.png (LinkedIn icon without padding)
 
 <!-- Links to your social media accounts -->
 
