@@ -94,6 +94,78 @@ ALTER ROLE
 postgres=#
 ```
 
+## 2. Migrate Database Scheme & data
+As with most sql database PostgreSQL allows us to easily copy our database schema and data from our local development postgres instance and copy it over to the Postgres isntance running in our production server.
+
+On your local dev machine, open up a terminal and run:
+
+```
+pg_dump -U postgres -f yelp.pgsql -C yelp
+```
+The `-U` flag specifies the user u want to login as, if you are using a different username, update it accordingly. 
+The `-f yelp.pgsql` flag will write the database schema and data to a file called `yelp.pgsql` in the current directory
+`-C` flag add the create database command to the file as well
+`yelp` is the name of the database in our local dev server that we want to dump. If your database is called something else update that accordingly. If you leave out the database name alltogether it will dump all databases
+
+Copy the yelp.pgsql file to the production server
+```
+scp -i [path to pem file] [path to yelp.pgsql] username@[server-ip]:[directory to copy file to]
+```
+
+In this example the pem file and yelp.gsql file are located in the current directory and my server ip is `1.1.1.1` and the username is `ubuntu`
+
+```
+scp -i yelp.pem yelp.pgsql ubuntu@1.1.1.1:/home/ubuntu/
+```
+
+Login to the production server and create a database called `yelp`
+```
+ubuntu@ip-172-31-20-1:~$ psql -d yelp
+postgres=# create database yelp;
+CREATE DATABASE
+```
+
+Import the database schema & data from the `yelp.pgsql` file
+
+```
+psql yelp < /home/ubuntu/yelp.pgsql
+```
+
+login to the yelp database and verify that everything looks ok
+```
+ubuntu@ip-172-31-20-1:~$ psql -d yelp
+psql (12.4 (Ubuntu 12.4-0ubuntu0.20.04.1))
+Type "help" for help.
+
+yelp=# \d
+                 List of relations
+ Schema |        Name        |   Type   |  Owner
+--------+--------------------+----------+----------
+ public | restaurants        | table    | postgres
+ public | restaurants_id_seq | sequence | postgres
+ public | reviews            | table    | postgres
+ public | reviews_id_seq     | sequence | postgres
+(4 rows)
+
+yelp=# select * from restaurants;
+ id |           name           |    location     | price_range
+----+--------------------------+-----------------+-------------
+  2 | taco bell                | san fran        |           3
+  3 | taco bell                | New York        |           4
+  4 | cheesecake factory       | dallas          |           2
+  5 | cheesecake factory       | dallas          |           2
+  6 | cheesecake factory       | houston         |           2
+ 10 | chiptle                  | virgini         |           1
+ 11 | chiptle                  | virgini         |           1
+ 13 | california pizza kitchen | vegas           |           1
+  1 | wendys                   | Lincoln         |           4
+ 14 | california pizza kitchen | New mexico city |           3
+(10 rows)
+
+yelp=#
+```
+
+
 ## 2. Copy github repo to sever
 
 Find a place to store your application code. In this example in the `ubuntu` home directory a new directory called `apps` will be created. Within the new `apps` directory another directory called `yelp-app`. Feel free to store your application code anywhere you see fit
@@ -192,10 +264,80 @@ There should be a server block called `default`
 ubuntu@ip-172-31-20-1:/etc/nginx/sites-available$ ls
 default 
 ```
-The default server block is what will be responsible for handling requests that don't match any other server blocks. Right now if you navigate to your server ip, you will see a pretty bland html page that says NGINX is installed. That is the `default` server block in action. We will need to configure a new server block for our website. To do that let's create a new file in `/etc/nginx/sites-available/` directory. We can call this file whatever you want, but I recommend that you name it the same name as your domain name for your app. In this example my website will be hosted at *sanjeev.xyz* so I will also name the new file `sanjeev.xyz`. But instead of creating a brand new file, since most of the configs will be fairly similar to the `default` server block, I recommend copying the `default` config.
+The default server block is what will be responsible for handling requests that don't match any other server blocks. Right now if you navigate to your server ip, you will see a pretty bland html page that says NGINX is installed. That is the `default` server block in action. 
+
+We will need to configure a new server block for our website. To do that let's create a new file in `/etc/nginx/sites-available/` directory. We can call this file whatever you want, but I recommend that you name it the same name as your domain name for your app. In this example my website will be hosted at *sanjeev.xyz* so I will also name the new file `sanjeev.xyz`. But instead of creating a brand new file, since most of the configs will be fairly similar to the `default` server block, I recommend copying the `default` config.
 
 ```
 cd /etc/nginx/sites-available
 sudo cp default sanjeev.xyz
 ```
+
+open the new server block file `sanjeev.xyz` and modify it so it matches below:
+
+```
+server {
+        listen 80;
+        listen [::]:80;
+
+         root /home/ubuntu/apps/yelp-app/client/build;
+
+        # Add index.php to the list if you are using PHP
+        index index.html index.htm index.nginx-debian.html;
+
+        server_name sanjeev.xyz www.sanjeev.xyz;
+
+        location / {
+                try_files $uri /index.html;
+        }
+
+         location /api {
+            proxy_pass http://localhost:3001;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+        }
+
+}
+```
+
+**Let's go over what each line does**
+
+The first two lines `listen 80` and `listen [::]:80;` tell nginx to listen for traffic on port 80 which is the default port for http traffic. Note that I removed the `default_server` keyword on these lines. If you want this server block to be the default then keep it in
+
+`root /home/ubuntu/apps/yelp-app/client/build;` tells nginx the path to the index.html file it will server. Here we passed the path to the build directory in our react app code. This directory has the finalized html/js/css files for the frontend.
+
+`server_name sanjeev.xyz www.sanjeev.xyz;` tells nginx what domain names it should listen for. Make sure to replace this with your specific domains. If you don't have a domain then you can put the ip address of your ubuntu server.
+
+The configuration block below is needed due to the fact that React is a Singe-Page-App. So if a user directly goes to a url that is not the root url like `https://sanjeev.xyz/restaurants/4` you will get a 404 cause NGINX has not been configured to handle any path ohter than the `/`. This config block tells nginx to redirect everything back to the `/` path so that react can then handle the routing.
+
+```
+        location / {
+                try_files $uri /index.html;
+        }
+```
+
+The last section is so that nginx can handle traffic destined to the backend. Notice the location is for `/api`. So any url with a path of `/api` will automatically follow the instructions associated with this config block. The first line in the config block `proxy_pass http://localhost:3001;` tells nginx to redirect it to the localhost on port 3001 which is the port that our backend process is running on. This is how traffic gets forwarded to the Node backend. If you are using a different port, make sure to update that in this line.
+
+**Enable the new site**
+```
+sudo ln -s /etc/nginx/sites-available/sanjeev.xyz /etc/nginx/sites-enabled/
+systemctl restart nginx
+```
+
+## 7. Enable Firewall
+
+```
+sudo ufw status
+sudo ufw allow ssh
+sudo ufw allow http
+sudo ufw allow https
+sudo ufw enable
+sudo ufw status
+```
+
+## 8.
+
 
