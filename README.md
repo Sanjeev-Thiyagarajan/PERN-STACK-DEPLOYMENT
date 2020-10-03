@@ -108,4 +108,64 @@ mkdir yelp-app
 move inside the `yelp-app` directory and clone the project repo
 ```
 cd yelp-app
-git clone
+git clone https://github.com/Sanjeev-Thiyagarajan/PERN-STACK-DEPLOYMENT.git .
+```
+
+## 3. Install Node
+To install Node on Ubuntu follow the steps detailed in:
+https://github.com/nodesource/distributions/blob/master/README.md
+
+```
+curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+## 4. Install and Configure PM2
+We never want to run *node* directly in production. Instead we want to use a process manager like PM2 to handle running our backend server. PM2 will be responsible for restarting the App if/when it crashes :grin:
+
+```
+sudo npm install pm2 -g
+```
+Point pm2 to the location of the server.js file so it can start the app. We can add the `--name` flag to give the process a descriptive name
+```
+pm2 start /home/ubuntu/apps/yelp-app/server/server.js --name yelp-app
+```
+
+Configure PM2 to automatically startup the process after a reboot
+
+```
+ubuntu@ip-172-31-20-1:~$ pm2 startup
+[PM2] Init System found: systemd
+[PM2] To setup the Startup Script, copy/paste the following command:
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u ubuntu --hp /home/ubuntu
+```
+The output above gives you a specific command to run, copy and paste it into the terminal. The command given will be different on your machine depending on the username, so do not copy the output above, instead run the command that is given in your output.
+
+```
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u ubuntu --hp /home/ubuntu
+```
+
+Verify that the App is running
+
+```
+pm2 status
+```
+After verify App is running, save the current list of processes so that the same processes are started during bootup. If the list of processes ever changes in the future, you'll want to do another `pm2 save`
+
+```
+pm2 save
+```
+
+## 5 Deploy React Frontend
+Navigate to the client directory in our App code and run `npm run build`. 
+
+This will create a finalized production ready version of our react frontent in directory called `build`. The build folder is what the NGINX server will be configured to serve.
+
+```
+ubuntu@ip-172-31-20-1:~/apps/yelp-app/client$ ls
+README.md  build  node_modules  package-lock.json  package.json  public  src
+ubuntu@ip-172-31-20-1:~/apps/yelp-app/client$ cd build/
+ubuntu@ip-172-31-20-1:~/apps/yelp-app/client/build$ ls
+asset-manifest.json  favicon.ico  index.html  logo192.png  logo512.png  manifest.json  precache-manifest.ee13f4c95d9882a5229da70669bb264c.js  robots.txt  service-worker.js  static
+ubuntu@ip-172-31-20-1:~/apps/yelp-app/client/build$
+```
