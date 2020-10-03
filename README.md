@@ -156,7 +156,7 @@ After verify App is running, save the current list of processes so that the same
 pm2 save
 ```
 
-## 5 Deploy React Frontend
+## 5. Deploy React Frontend
 Navigate to the client directory in our App code and run `npm run build`. 
 
 This will create a finalized production ready version of our react frontent in directory called `build`. The build folder is what the NGINX server will be configured to serve.
@@ -169,3 +169,33 @@ ubuntu@ip-172-31-20-1:~/apps/yelp-app/client/build$ ls
 asset-manifest.json  favicon.ico  index.html  logo192.png  logo512.png  manifest.json  precache-manifest.ee13f4c95d9882a5229da70669bb264c.js  robots.txt  service-worker.js  static
 ubuntu@ip-172-31-20-1:~/apps/yelp-app/client/build$
 ```
+
+## 6. Install and Configure NGINX
+
+Install and enable NGINX
+```
+sudo apt install nginx -y
+sudo systemctl enable nginx
+```
+
+NGINX is a feature-rich webserver that can serve multiple websites/web-apps on one machine. Each website that NGINX is responsible for serving needs to have a seperate server block configured for it.
+
+Navigate to '/etc/nginx/sites-available'
+
+```
+cd /etc/nginx/sites-available
+```
+
+There should be a server block called `default`
+
+```
+ubuntu@ip-172-31-20-1:/etc/nginx/sites-available$ ls
+default 
+```
+The default server block is what will be responsible for handling requests that don't match any other server blocks. Right now if you navigate to your server ip, you will see a pretty bland html page that says NGINX is installed. That is the `default` server block in action. We will need to configure a new server block for our website. To do that let's create a new file in `/etc/nginx/sites-available/` directory. We can call this file whatever you want, but I recommend that you name it the same name as your domain name for your app. In this example my website will be hosted at *sanjeev.xyz* so I will also name the new file `sanjeev.xyz`. But instead of creating a brand new file, since most of the configs will be fairly similar to the `default` server block, I recommend copying the `default` config.
+
+```
+cd /etc/nginx/sites-available
+sudo cp default sanjeev.xyz
+```
+
