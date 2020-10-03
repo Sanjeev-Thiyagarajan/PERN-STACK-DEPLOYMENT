@@ -166,7 +166,7 @@ yelp=#
 ```
 
 
-## 2. Copy github repo to sever
+## 3. Copy github repo to sever
 
 Find a place to store your application code. In this example in the `ubuntu` home directory a new directory called `apps` will be created. Within the new `apps` directory another directory called `yelp-app`. Feel free to store your application code anywhere you see fit
 
@@ -183,7 +183,7 @@ cd yelp-app
 git clone https://github.com/Sanjeev-Thiyagarajan/PERN-STACK-DEPLOYMENT.git .
 ```
 
-## 3. Install Node
+## 4. Install Node
 To install Node on Ubuntu follow the steps detailed in:
 https://github.com/nodesource/distributions/blob/master/README.md
 
@@ -192,7 +192,7 @@ curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-## 4. Install and Configure PM2
+## 5. Install and Configure PM2
 We never want to run *node* directly in production. Instead we want to use a process manager like PM2 to handle running our backend server. PM2 will be responsible for restarting the App if/when it crashes :grin:
 
 ```
@@ -228,7 +228,7 @@ After verify App is running, save the current list of processes so that the same
 pm2 save
 ```
 
-## 5. Deploy React Frontend
+## 6. Deploy React Frontend
 Navigate to the client directory in our App code and run `npm run build`. 
 
 This will create a finalized production ready version of our react frontent in directory called `build`. The build folder is what the NGINX server will be configured to serve.
@@ -242,7 +242,7 @@ asset-manifest.json  favicon.ico  index.html  logo192.png  logo512.png  manifest
 ubuntu@ip-172-31-20-1:~/apps/yelp-app/client/build$
 ```
 
-## 6. Install and Configure NGINX
+## 7. Install and Configure NGINX
 
 Install and enable NGINX
 ```
@@ -327,7 +327,7 @@ sudo ln -s /etc/nginx/sites-available/sanjeev.xyz /etc/nginx/sites-enabled/
 systemctl restart nginx
 ```
 
-## 7. Enable Firewall
+## 8. Enable Firewall
 
 ```
 sudo ufw status
@@ -338,6 +338,27 @@ sudo ufw enable
 sudo ufw status
 ```
 
-## 8.
+## 9. Enable SSL with Let's Encrypt
+Nowadays almost all websites use HTTPS exclusively. Let's use Let's Encrypt to generate SSL certificates and also configure NGINX to use these certificates and redirect http traffic to HTTPS.
+
+The step by step procedure is listed at:
+https://certbot.eff.org/lets-encrypt/ubuntufocal-nginx.html
 
 
+Install Certbot
+
+```
+sudo snap install --classic certbot
+```
+
+Prepare the Certbot command
+
+```
+sudo ln -s /snap/bin/certbot /usr/bin/certbot
+```
+
+Get and install certificates using interactive prompt
+
+```
+sudo certbot --nginx
+```
