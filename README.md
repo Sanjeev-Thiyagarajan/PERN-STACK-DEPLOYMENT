@@ -76,3 +76,36 @@ The reason for this is that Postgres by default tries to connect to a database t
 ```
 psql -d postgres
 ```
+
+Right now the `ubuntu` user in Postgres does not have a password associated with it. We will need to add a password:
+
+```
+ubuntu@ip-172-31-20-1:~$ psql -d postgres
+psql (12.4 (Ubuntu 12.4-0ubuntu0.20.04.1))
+Type "help" for help.
+
+postgres=# \q
+ubuntu@ip-172-31-20-1:~$ psql -d postgres
+psql (12.4 (Ubuntu 12.4-0ubuntu0.20.04.1))
+Type "help" for help.
+
+postgres=# ALTER USER ubuntu PASSWORD 'password';
+ALTER ROLE
+postgres=#
+```
+
+## 2. Copy github repo to sever
+
+Find a place to store your application code. In this example in the `ubuntu` home directory a new directory called `apps` will be created. Within the new `apps` directory another directory called `yelp-app`. Feel free to store your application code anywhere you see fit
+
+```
+cd ~
+mkdir apps
+cd apps
+mkdir yelp-app
+```
+
+move inside the `yelp-app` directory and clone the project repo
+```
+cd yelp-app
+git clone
