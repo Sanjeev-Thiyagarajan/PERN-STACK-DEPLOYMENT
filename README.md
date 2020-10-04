@@ -361,7 +361,7 @@ Verify that the environment variables are set by running the `printenv`
 # printenv
 ```
 
-## 8. Enable Firewall
+## 9. Enable Firewall
 
 ```
 sudo ufw status
@@ -372,7 +372,7 @@ sudo ufw enable
 sudo ufw status
 ```
 
-## 9. Enable SSL with Let's Encrypt
+## 10. Enable SSL with Let's Encrypt
 Nowadays almost all websites use HTTPS exclusively. Let's use Let's Encrypt to generate SSL certificates and also configure NGINX to use these certificates and redirect http traffic to HTTPS.
 
 The step by step procedure is listed at:
@@ -399,16 +399,4 @@ sudo certbot --nginx
 
 ## Authors
 * **Sanjeev Thiyagarajan** - *CEO of Nothing*
-<!-- Actual text -->
 
-You can find me on [![Twitter][1.2]][1], or on [![LinkedIn][3.2]][3].
-
-<!-- Icons -->
-
-[1.2]: http://i.imgur.com/wWzX9uB.png (twitter icon without padding)
-[3.2]: https://content.linkedin.com/content/dam/me/brand/en-us/brand-home/logos/01-dsk-e5-v2.png.original.png (LinkedIn icon without padding)
-
-<!-- Links to your social media accounts -->
-
-[1]: https://twitter.com/sanjeev_tea
-[3]: https://www.linkedin.com/in/sanjeev-thiyagarajan-690001163/
